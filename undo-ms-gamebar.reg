@@ -1,0 +1,8 @@
+Windows Registry Editor Version 5.00
+
+; Undo the ms-gamebar no-op handler fix.
+; Only removes the keys created by fix-ms-gamebar.reg.
+
+[-HKEY_CURRENT_USER\Software\Classes\ms-gamebar]
+
+[-HKEY_CURRENT_USER\Software\Classes\ms-gamebarservices]
