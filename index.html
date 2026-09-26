@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>修复 ms-gamebar 弹窗 — Win11 LTSC 手柄连接提示</title>
-<meta name="description" content="解决 Windows 10/11 LTSC 等无 Xbox 组件的系统连接手柄时弹出「需要新应用以打开 ms-gamebar 链接」的问题。下载一个脚本双击即可修复,完全无弹窗、无窗口,无需管理员权限。">
+<title>修复连接手柄时的 ms-gamebar 弹窗(Win10/11 LTSC)</title>
+<meta name="description" content="Windows LTSC 没有 Xbox Game Bar,连接手柄时会弹出「需要新应用以打开此 ms-gamebar 链接」。运行一次 fix.bat 即可解决,不需要管理员权限。">
 <style>
   :root {
     --bg: #0d1117;
@@ -20,132 +20,97 @@
     font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
     background: var(--bg);
     color: var(--text);
-    line-height: 1.7;
+    line-height: 1.75;
   }
-  .container { max-width: 820px; margin: 0 auto; padding: 48px 24px 80px; }
-  header { text-align: center; margin-bottom: 48px; }
-  header h1 { font-size: 2rem; margin-bottom: 12px; }
-  header .sub { color: var(--muted); font-size: 1.05rem; }
-  .badge {
-    display: inline-block; margin-bottom: 16px; padding: 4px 12px;
-    border: 1px solid var(--border); border-radius: 999px;
-    font-size: .85rem; color: var(--accent); background: var(--panel);
-  }
+  .container { max-width: 760px; margin: 0 auto; padding: 56px 24px 80px; }
+  header { text-align: center; margin-bottom: 44px; }
+  header h1 { font-size: 1.8rem; margin-bottom: 14px; font-weight: 600; }
+  header .sub { color: var(--muted); font-size: 1.02rem; }
   .card {
     background: var(--panel); border: 1px solid var(--border);
-    border-radius: 12px; padding: 28px; margin-bottom: 24px;
+    border-radius: 10px; padding: 26px 28px; margin-bottom: 22px;
   }
-  .card h2 { font-size: 1.25rem; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
-  .card h2 .num {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 28px; height: 28px; border-radius: 50%;
-    background: var(--accent); color: #0d1117; font-size: .95rem; flex-shrink: 0;
-  }
+  .card h2 { font-size: 1.15rem; margin-bottom: 14px; font-weight: 600; }
   .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 10px 20px; border-radius: 8px; text-decoration: none;
-    font-weight: 600; font-size: 1rem; cursor: pointer; border: none;
+    display: inline-block; padding: 10px 22px; border-radius: 6px;
+    text-decoration: none; font-weight: 600; font-size: 1rem;
     transition: filter .15s;
   }
   .btn:hover { filter: brightness(1.15); }
   .btn-primary { background: var(--green-dark); color: #fff; }
   .btn-secondary { background: transparent; color: var(--accent); border: 1px solid var(--border); }
-  .steps li { margin: 10px 0 10px 4px; }
+  .steps li, .why li { margin: 8px 0 8px 20px; }
   .muted { color: var(--muted); font-size: .92rem; }
   code.inline {
-    background: #21262d; border: 1px solid var(--border); border-radius: 5px;
-    padding: 1px 7px; font-family: Consolas, monospace; font-size: .9em;
+    background: #21262d; border: 1px solid var(--border); border-radius: 4px;
+    padding: 1px 6px; font-family: Consolas, monospace; font-size: .9em;
   }
-  details { border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px; }
-  summary { cursor: pointer; color: var(--accent); font-weight: 600; }
-  details p, details li { margin-top: 8px; }
-  .why li { margin: 8px 0 8px 20px; }
-  footer { text-align: center; margin-top: 48px; color: var(--muted); font-size: .88rem; }
-  a { color: var(--accent); }
-  .warn {
-    margin-top: 14px; padding: 10px 14px; border-radius: 8px;
-    background: rgba(210,153,34,.12); border: 1px solid rgba(210,153,34,.4);
+  .note {
+    margin-top: 14px; padding: 10px 14px; border-radius: 6px;
+    background: rgba(210,153,34,.1); border: 1px solid rgba(210,153,34,.35);
     font-size: .92rem;
   }
+  footer { text-align: center; margin-top: 44px; color: var(--muted); font-size: .88rem; }
+  a { color: var(--accent); }
+  .card p { margin: 8px 0; }
+  .card h3 { font-size: 1rem; margin: 18px 0 6px; font-weight: 600; }
 </style>
 </head>
 <body>
 <div class="container">
 
   <header>
-    <div class="badge">适用于 Windows 10 / 11 LTSC 及移除 Xbox 组件的系统</div>
-    <h1>连接手柄弹出 <code class="inline">ms-gamebar</code> 提示?一键修复</h1>
-    <p class="sub">「需要新应用以打开此 ms-gamebar 链接」——一个脚本双击即修,之后完全无感:无弹窗、无任何窗口。</p>
-    <div style="margin-top:24px">
-      <a class="btn btn-primary" style="padding:14px 32px;font-size:1.1rem" href="fix.bat" download>⬇ 下载 fix.bat(一键修复)</a>
-      <a class="btn btn-secondary" style="padding:14px 24px;font-size:1.1rem" href="undo.bat" download>还原 undo.bat</a>
+    <h1>连接手柄总弹「需要新应用以打开 ms-gamebar 链接」?</h1>
+    <p class="sub">LTSC 没装 Xbox Game Bar,系统找不到处理 <code class="inline">ms-gamebar</code> 协议的应用,每次连手柄都要弹一次。运行一次下面的脚本,以后就不再弹了。</p>
+    <div style="margin-top:22px">
+      <a class="btn btn-primary" style="padding:13px 30px" href="fix.bat" download>下载 fix.bat</a>
+      <a class="btn btn-secondary" style="padding:13px 22px" href="undo.bat" download>undo.bat(还原用)</a>
     </div>
-    <p class="muted" style="margin-top:12px">无需管理员权限 · 仅写入当前用户注册表 · 双击运行即可</p>
+    <p class="muted" style="margin-top:12px">不需要管理员权限,双击运行即可。适用于 Windows 10/11 LTSC 及其他移除了 Xbox 组件的系统。</p>
   </header>
 
   <div class="card">
-    <h2><span class="num">1</span>下载脚本,双击运行</h2>
+    <h2>怎么用</h2>
     <ol class="steps">
-      <li>下载 <strong>fix.bat</strong></li>
-      <li>双击运行,看到「修复完成」即可关闭</li>
-      <li>重新连接手柄——不会再有任何弹窗或窗口(无需重启)</li>
+      <li>下载 fix.bat</li>
+      <li>双击运行,看到「修复完成」后把窗口关掉</li>
+      <li>重新插一次手柄,弹窗不会再出现,不用重启</li>
     </ol>
-    <div class="warn">无需管理员权限:脚本只写入当前用户的注册表(<code class="inline">HKCU</code>)和一个空脚本文件,运行 <strong>undo.bat</strong> 可完整还原。</div>
+    <div class="note">脚本只改动当前用户注册表和一个空脚本文件,想恢复原状就运行 undo.bat。</div>
   </div>
 
   <div class="card">
-    <h2><span class="num">?</span>脚本解决什么问题(详细说明)</h2>
+    <h2>这个问题是怎么回事</h2>
 
-    <p style="margin-top:4px"><strong>现象</strong></p>
-    <p>在 Windows 10/11 LTSC 上,每次连接手柄(有线插入、蓝牙连接,或按下手柄上的 Xbox 键)的瞬间,屏幕都会弹出这样的对话框:</p>
-    <p style="margin:8px 0 16px"><code class="inline">需要新应用以打开此 ms-gamebar 链接</code></p>
-    <p>这个弹窗无法通过「不再提示」关闭,每次连接手柄都会重复出现,非常烦人。它只是一个提示,不影响手柄本身的按键、震动等功能。</p>
+    <h3>现象</h3>
+    <p>每次连接手柄(有线、蓝牙,或按手柄上的 Xbox 键)的瞬间,弹出「需要新应用以打开此 ms-gamebar 链接」。系统没有提供"不再提示"的选项,只能每次手动点掉。手柄本身不受影响,按键、震动都正常。</p>
 
-    <p style="margin-top:16px"><strong>根本原因</strong></p>
-    <ul class="why">
-      <li>在普通版 Windows 10/11 中,系统内置了 Xbox Game Bar(游戏覆盖层)。注册表 <code class="inline">HKEY_CLASSES_ROOT</code> 下注册了 <code class="inline">ms-gamebar://</code> 和 <code class="inline">ms-gamebarservices://</code> 两个协议,指向这个应用。</li>
-      <li>当检测到手柄连接(或按下 Xbox 键)时,Windows 会调用 <code class="inline">ms-gamebar://</code> 协议,尝试拉起 Game Bar 来显示手柄相关的提示界面。</li>
-      <li>LTSC(长期服务版)面向精简场景,默认移除了 Microsoft Store、Xbox 全家桶等组件,<strong>这两个协议在注册表里完全没有处理器</strong>。</li>
-      <li>于是系统调用协议时找不到任何能打开它的应用,触发了 Windows 的兜底行为——弹出「需要新应用」对话框。这就是弹窗的全部来由。</li>
-    </ul>
+    <h3>原因</h3>
+    <p>完整版 Windows 里,Xbox Game Bar 在注册表注册了 <code class="inline">ms-gamebar://</code> 和 <code class="inline">ms-gamebarservices://</code> 两个协议。检测到手柄连接时,系统会调用协议去拉起 Game Bar 的提示界面。</p>
+    <p>LTSC 把 Xbox 组件整个砍掉了,这两个协议就注册表里根本没有对应的处理器。系统找不到任何应用来打开,只能退而弹出「需要新应用」的对话框——这就是弹窗的全部来由。</p>
 
-    <p style="margin-top:16px"><strong>fix.bat 做了什么</strong></p>
-    <ol class="why" style="list-style:decimal">
-      <li>在 <code class="inline">%LocalAppData%</code> 写入一个内容为空的脚本 <code class="inline">ms-gamebar-noop.vbs</code>(只有一行注释,运行即退出,不做任何事)。</li>
-      <li>用 <code class="inline">reg add</code> 在<strong>当前用户</strong>注册表(<code class="inline">HKCU\Software\Classes</code>)中为 <code class="inline">ms-gamebar</code> 和 <code class="inline">ms-gamebarservices</code> 两个协议补上处理器定义:<code class="inline">URL Protocol</code> 标记、<code class="inline">NoOpenWith</code>(禁止系统弹"选择应用"),以及打开命令。</li>
-      <li>打开命令指向 <code class="inline">wscript.exe //B //Nologo &lt;空脚本&gt;</code>。<code class="inline">wscript.exe</code> 属于 GUI 子系统程序,从进程创建起就不分配控制台窗口;而 <code class="inline">//B //Nologo</code> 保证不显示任何脚本错误和横幅。所以协议被调用时,整个过程静默、瞬时、零窗口。</li>
+    <h3>fix.bat 做了什么</h3>
+    <ol class="steps">
+      <li>在 <code class="inline">%LocalAppData%</code> 下放一个空脚本 <code class="inline">ms-gamebar-noop.vbs</code>,内容只有一行注释,运行即退出。</li>
+      <li>在当前用户注册表(<code class="inline">HKCU\Software\Classes</code>)给上面两个协议补上处理器,打开方式指向 <code class="inline">wscript.exe //B //Nologo 加那个空脚本</code>。</li>
     </ol>
+    <p>用 <code class="inline">wscript.exe</code> 而不是更直观的 <code class="inline">cmd.exe /c exit</code>,是因为 cmd 是控制台程序,个别机器上会闪一下黑框;而 wscript 属于 GUI 子系统,进程一创建就不带控制台窗口,<code class="inline">//B //Nologo</code> 再压掉错误提示和横幅,协议被调用时全程一个窗口都不会出现。</p>
+    <p>修好之后,系统调用协议会"正常打开"这个空处理器然后立即退出,弹窗的触发条件就不存在了。</p>
 
-    <p style="margin-top:16px"><strong>效果</strong></p>
-    <p>修复后,连接手柄时系统调用 <code class="inline">ms-gamebar://</code> 协议会"成功打开"这个空处理器——静默执行、立即退出。系统认为应用已正常启动,自然不再弹窗。整个过程你完全感知不到:没有弹窗、没有闪框、没有后台残留。</p>
-
-    <p style="margin-top:16px"><strong>为什么不直接删掉什么?</strong></p>
-    <p>这个问题的成因是"缺东西"而不是"多东西",所以修复方式是补上一个无感的占位处理器,而不是删除或禁用什么。也因此修复是纯增量、可逆的:运行 <code class="inline">undo.bat</code> 删除这几个注册表项和空脚本,系统就回到修复前的原始状态。</p>
+    <h3>为什么能放心还原</h3>
+    <p>这个问题的成因是缺东西而不是多了什么,所以修法是补一个安静的占位处理器,不删不改系统里任何现有配置。undo.bat 把新增的注册表项和脚本文件删掉,系统就回到原始状态。</p>
   </div>
 
   <div class="card">
-    <h2><span class="num">✦</span>常见问题</h2>
-    <details open>
-      <summary>需要管理员权限吗?</summary>
-      <p>不需要。修复只写入当前用户的注册表(<code class="inline">HKCU</code>),每个 Windows 账户需各自运行一次 fix.bat。</p>
-    </details>
-    <details>
-      <summary>有风险吗?如何还原?</summary>
-      <p>新增的只是两个协议的空处理器,不影响系统其他功能。运行 <a href="undo.bat" download>undo.bat</a> 即可完整还原(删除注册表项和空脚本)。</p>
-    </details>
-    <details>
-      <summary>浏览器提示 .bat 有风险?</summary>
-      <p>脚本是明文文本,可以用记事本打开查看全部内容再决定是否运行。它只做两件事:写一个空 <code class="inline">.vbs</code> 文件到 <code class="inline">%LocalAppData%</code>,以及用 <code class="inline">reg add</code> 写入协议注册。</p>
-    </details>
-    <details>
-      <summary>为什么我的系统没有 Game Bar?</summary>
-      <p>Windows 10/11 LTSC(长期服务版)面向精简场景,默认不包含 Microsoft Store、Xbox Game Bar 等组件。家庭版/专业版用户通常不会遇到此问题。</p>
-    </details>
+    <h2>其他问题</h2>
+    <p><strong>需要管理员权限吗?</strong><br>不需要。改动只在 HKCU,如果你换了 Windows 账户,新账户要再跑一次 fix.bat。</p>
+    <p><strong>浏览器拦截 .bat 下载?</strong><br>脚本是明文文本,用记事本打开就能看到全部内容:写一个 vbs 文件,执行几条 reg add,仅此而已。确认没问题再运行。</p>
+    <p><strong>为什么我的系统没有 Game Bar?</strong><br>LTSC 面向精简场景,默认不带 Microsoft Store 和 Xbox 组件。家庭版、专业版用户一般不会碰到这个问题。</p>
   </div>
 
   <footer>
-    修复方案来源:实际在 Windows 11 LTSC 上验证通过 ·
-    <a href="https://github.com/adam-ikari/ms-gamebar-fix" target="_blank" rel="noopener">GitHub 仓库</a>
+    方案在 Windows 11 LTSC 上实际验证 ·
+    <a href="https://github.com/adam-ikari/ms-gamebar-fix" target="_blank" rel="noopener">GitHub</a>
   </footer>
 
 </div>
