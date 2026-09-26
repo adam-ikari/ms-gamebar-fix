@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>修复 ms-gamebar 弹窗 — Win11 LTSC 手柄连接提示</title>
-<meta name="description" content="解决 Windows 10/11 LTSC 等无 Xbox 组件的系统连接手柄时弹出「需要新应用以打开 ms-gamebar 链接」的问题。双击导入注册表文件即可修复,无需管理员权限。">
+<meta name="description" content="解决 Windows 10/11 LTSC 等无 Xbox 组件的系统连接手柄时弹出「需要新应用以打开 ms-gamebar 链接」的问题。下载一个脚本双击即可修复,完全无弹窗、无窗口,无需管理员权限。">
 <style>
   :root {
     --bg: #0d1117;
@@ -13,7 +13,6 @@
     --text: #e6edf3;
     --muted: #8b949e;
     --accent: #58a6ff;
-    --green: #3fb950;
     --green-dark: #238636;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -57,11 +56,6 @@
     background: #21262d; border: 1px solid var(--border); border-radius: 5px;
     padding: 1px 7px; font-family: Consolas, monospace; font-size: .9em;
   }
-  pre {
-    background: #0d1117; border: 1px solid var(--border); border-radius: 8px;
-    padding: 16px; overflow-x: auto; font-size: .85rem; color: #c9d1d9;
-    font-family: Consolas, monospace; margin-top: 12px;
-  }
   details { border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px; }
   summary { cursor: pointer; color: var(--accent); font-weight: 600; }
   details p, details li { margin-top: 8px; }
@@ -81,71 +75,46 @@
   <header>
     <div class="badge">适用于 Windows 10 / 11 LTSC 及移除 Xbox 组件的系统</div>
     <h1>连接手柄弹出 <code class="inline">ms-gamebar</code> 提示?一键修复</h1>
-    <p class="sub">「需要新应用以打开此 ms-gamebar 链接」——双击导入注册表文件即可永久消除,无需管理员权限。</p>
+    <p class="sub">「需要新应用以打开此 ms-gamebar 链接」——一个脚本双击即修,之后完全无感:无弹窗、无任何窗口。</p>
   </header>
 
   <div class="card">
-    <h2><span class="num">1</span>下载并导入修复文件</h2>
+    <h2><span class="num">1</span>下载脚本,双击运行</h2>
     <ol class="steps">
-      <li>下载 <a href="fix-ms-gamebar.reg" download><strong>fix-ms-gamebar.reg</strong></a></li>
-      <li>双击运行,在弹窗中选择「是」导入注册表</li>
-      <li>重新连接手柄,提示不会再出现(无需重启)</li>
+      <li>下载 <strong>fix.bat</strong></li>
+      <li>双击运行,看到「修复完成」即可关闭</li>
+      <li>重新连接手柄——不会再有任何弹窗或窗口(无需重启)</li>
     </ol>
     <p style="margin-top:16px">
-      <a class="btn btn-primary" href="fix-ms-gamebar.reg" download>⬇ 下载修复文件 (.reg)</a>
-      <a class="btn btn-secondary" href="undo-ms-gamebar.reg" download>撤销 / 还原 (.reg)</a>
+      <a class="btn btn-primary" href="fix.bat" download>⬇ 下载 fix.bat(一键修复)</a>
+      <a class="btn btn-secondary" href="undo.bat" download>还原 undo.bat</a>
     </p>
-    <div class="warn">仅写入当前用户的 <code class="inline">HKCU\Software\Classes</code>,不修改系统注册表;撤销文件可完整还原。</div>
+    <div class="warn">无需管理员权限:脚本只写入当前用户的注册表(<code class="inline">HKCU</code>)和一个空脚本文件,运行 <strong>undo.bat</strong> 可完整还原。</div>
   </div>
 
   <div class="card">
-    <h2><span class="num">?</span>原因是什么</h2>
+    <h2><span class="num">?</span>原因与原理</h2>
     <ul class="why">
       <li>连接手柄(或按 Xbox 键)时,Windows 会通过 <code class="inline">ms-gamebar://</code> 协议拉起 Xbox Game Bar。</li>
       <li>LTSC 等精简系统没有该组件,注册表里也没有这个协议的处理器,系统找不到能打开它的应用,于是弹出「需要新应用」提示。</li>
-      <li>修复思路:给 <code class="inline">ms-gamebar</code> 和 <code class="inline">ms-gamebarservices</code> 两个协议各注册一个「空操作」处理器——系统调用协议时静默执行并立即退出,弹窗自然消失。</li>
+      <li>修复思路:给 <code class="inline">ms-gamebar</code> 和 <code class="inline">ms-gamebarservices</code> 两个协议注册一个「空操作」处理器,让系统调用协议时静默成功、立即退出。</li>
+      <li>处理器选用 GUI 子系统的 <code class="inline">wscript.exe</code> 执行空脚本——它从进程创建起就没有控制台窗口,所以连一闪而过的黑框都不会有,真正做到完全无感。</li>
     </ul>
-    <details>
-      <summary>查看修复文件内容</summary>
-      <pre>Windows Registry Editor Version 5.00
-
-[HKEY_CURRENT_USER\Software\Classes\ms-gamebar]
-@="URL:ms-gamebar"
-"URL Protocol"=""
-"NoOpenWith"=""
-
-[HKEY_CURRENT_USER\Software\Classes\ms-gamebar\shell\open\command]
-@="\"C:\\Windows\\System32\\cmd.exe\" /c exit"
-
-[HKEY_CURRENT_USER\Software\Classes\ms-gamebarservices]
-@="URL:ms-gamebarservices"
-"URL Protocol"=""
-"NoOpenWith"=""
-
-[HKEY_CURRENT_USER\Software\Classes\ms-gamebarservices\shell\open\command]
-@="\"C:\\Windows\\System32\\cmd.exe\" /c exit"</pre>
-    </details>
-  </div>
-
-  <div class="card">
-    <h2><span class="num">✦</span>进阶:彻底无黑框版本(可选)</h2>
-    <p>基础版中处理器命令是 <code class="inline">cmd.exe /c exit</code>,极少数情况下连接手柄瞬间会闪过一个小黑框。如果介意,可改用无窗口版本:</p>
-    <ol class="steps" style="margin-top:10px">
-      <li>下载 <a href="ms-gamebar-noop.vbs" download><strong>ms-gamebar-noop.vbs</strong></a>,放到 <code class="inline">%LocalAppData%</code> 目录(即 <code class="inline">C:\Users\你的用户名\AppData\Local</code>)</li>
-      <li>下载并导入 <a href="fix-noflash.reg" download><strong>fix-noflash.reg</strong></a>(需先导入过基础版)</li>
-    </ol>
-    <p class="muted" style="margin-top:10px">原理:改用 GUI 子系统的 <code class="inline">wscript.exe</code> 执行空脚本,从进程创建起就没有控制台窗口,原理上不可能闪框。</p>
   </div>
 
   <div class="card">
     <h2><span class="num">✦</span>常见问题</h2>
     <details open>
       <summary>需要管理员权限吗?</summary>
-      <p>不需要。修复只写入当前用户的注册表(<code class="inline">HKCU</code>),每个 Windows 账户需各自导入一次。</p>
+      <p>不需要。修复只写入当前用户的注册表(<code class="inline">HKCU</code>),每个 Windows 账户需各自运行一次 fix.bat。</p>
     </details>
     <details>
-      <summary>导入后有风险吗?如何还原?</summary>
-      <p>新增的只是两个协议的空处理器,不影响系统其他功能。下载 <a href="undo-ms-gamebar.reg" download>undo-ms-gamebar.reg</a> 双击导入即可完整还原。</p>
+      <summary>有风险吗?如何还原?</summary>
+      <p>新增的只是两个协议的空处理器,不影响系统其他功能。运行 <a href="undo.bat" download>undo.bat</a> 即可完整还原(删除注册表项和空脚本)。</p>
+    </details>
+    <details>
+      <summary>浏览器提示 .bat 有风险?</summary>
+      <p>脚本是明文文本,可以用记事本打开查看全部内容再决定是否运行。它只做两件事:写一个空 <code class="inline">.vbs</code> 文件到 <code class="inline">%LocalAppData%</code>,以及用 <code class="inline">reg add</code> 写入协议注册。</p>
     </details>
     <details>
       <summary>为什么我的系统没有 Game Bar?</summary>
