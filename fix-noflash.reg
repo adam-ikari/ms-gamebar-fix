@@ -1,0 +1,14 @@
+Windows Registry Editor Version 5.00
+
+; Flash-free variant of fix-ms-gamebar.reg.
+; Uses wscript.exe (GUI subsystem, never opens a console window)
+; instead of cmd.exe, so there is no black window flash.
+; Requires ms-gamebar-noop.vbs to be saved at:
+;   %LocalAppData%\ms-gamebar-noop.vbs
+; Import fix-ms-gamebar.reg first (this file only replaces the command).
+
+[HKEY_CURRENT_USER\Software\Classes\ms-gamebar\shell\open\command]
+@="\"C:\\Windows\\System32\\wscript.exe\" //B //Nologo \"%LocalAppData%\\ms-gamebar-noop.vbs\""
+
+[HKEY_CURRENT_USER\Software\Classes\ms-gamebarservices\shell\open\command]
+@="\"C:\\Windows\\System32\\wscript.exe\" //B //Nologo \"%LocalAppData%\\ms-gamebar-noop.vbs\""
