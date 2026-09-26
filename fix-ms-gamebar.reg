@@ -1,0 +1,21 @@
+Windows Registry Editor Version 5.00
+
+; Fix "You'll need a new app to open this ms-gamebar link" popup
+; when a gamepad is connected on Windows LTSC / systems without Xbox Game Bar.
+; Writes to HKCU only (no admin required). Double-click to import.
+
+[HKEY_CURRENT_USER\Software\Classes\ms-gamebar]
+@="URL:ms-gamebar"
+"URL Protocol"=""
+"NoOpenWith"=""
+
+[HKEY_CURRENT_USER\Software\Classes\ms-gamebar\shell\open\command]
+@="\"C:\\Windows\\System32\\cmd.exe\" /c exit"
+
+[HKEY_CURRENT_USER\Software\Classes\ms-gamebarservices]
+@="URL:ms-gamebarservices"
+"URL Protocol"=""
+"NoOpenWith"=""
+
+[HKEY_CURRENT_USER\Software\Classes\ms-gamebarservices\shell\open\command]
+@="\"C:\\Windows\\System32\\cmd.exe\" /c exit"
