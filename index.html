@@ -93,13 +93,33 @@
   </div>
 
   <div class="card">
-    <h2><span class="num">?</span>原因与原理</h2>
+    <h2><span class="num">?</span>脚本解决什么问题(详细说明)</h2>
+
+    <p style="margin-top:4px"><strong>现象</strong></p>
+    <p>在 Windows 10/11 LTSC 上,每次连接手柄(有线插入、蓝牙连接,或按下手柄上的 Xbox 键)的瞬间,屏幕都会弹出这样的对话框:</p>
+    <p style="margin:8px 0 16px"><code class="inline">需要新应用以打开此 ms-gamebar 链接</code></p>
+    <p>这个弹窗无法通过「不再提示」关闭,每次连接手柄都会重复出现,非常烦人。它只是一个提示,不影响手柄本身的按键、震动等功能。</p>
+
+    <p style="margin-top:16px"><strong>根本原因</strong></p>
     <ul class="why">
-      <li>连接手柄(或按 Xbox 键)时,Windows 会通过 <code class="inline">ms-gamebar://</code> 协议拉起 Xbox Game Bar。</li>
-      <li>LTSC 等精简系统没有该组件,注册表里也没有这个协议的处理器,系统找不到能打开它的应用,于是弹出「需要新应用」提示。</li>
-      <li>修复思路:给 <code class="inline">ms-gamebar</code> 和 <code class="inline">ms-gamebarservices</code> 两个协议注册一个「空操作」处理器,让系统调用协议时静默成功、立即退出。</li>
-      <li>处理器选用 GUI 子系统的 <code class="inline">wscript.exe</code> 执行空脚本——它从进程创建起就没有控制台窗口,所以连一闪而过的黑框都不会有,真正做到完全无感。</li>
+      <li>在普通版 Windows 10/11 中,系统内置了 Xbox Game Bar(游戏覆盖层)。注册表 <code class="inline">HKEY_CLASSES_ROOT</code> 下注册了 <code class="inline">ms-gamebar://</code> 和 <code class="inline">ms-gamebarservices://</code> 两个协议,指向这个应用。</li>
+      <li>当检测到手柄连接(或按下 Xbox 键)时,Windows 会调用 <code class="inline">ms-gamebar://</code> 协议,尝试拉起 Game Bar 来显示手柄相关的提示界面。</li>
+      <li>LTSC(长期服务版)面向精简场景,默认移除了 Microsoft Store、Xbox 全家桶等组件,<strong>这两个协议在注册表里完全没有处理器</strong>。</li>
+      <li>于是系统调用协议时找不到任何能打开它的应用,触发了 Windows 的兜底行为——弹出「需要新应用」对话框。这就是弹窗的全部来由。</li>
     </ul>
+
+    <p style="margin-top:16px"><strong>fix.bat 做了什么</strong></p>
+    <ol class="why" style="list-style:decimal">
+      <li>在 <code class="inline">%LocalAppData%</code> 写入一个内容为空的脚本 <code class="inline">ms-gamebar-noop.vbs</code>(只有一行注释,运行即退出,不做任何事)。</li>
+      <li>用 <code class="inline">reg add</code> 在<strong>当前用户</strong>注册表(<code class="inline">HKCU\Software\Classes</code>)中为 <code class="inline">ms-gamebar</code> 和 <code class="inline">ms-gamebarservices</code> 两个协议补上处理器定义:<code class="inline">URL Protocol</code> 标记、<code class="inline">NoOpenWith</code>(禁止系统弹"选择应用"),以及打开命令。</li>
+      <li>打开命令指向 <code class="inline">wscript.exe //B //Nologo &lt;空脚本&gt;</code>。<code class="inline">wscript.exe</code> 属于 GUI 子系统程序,从进程创建起就不分配控制台窗口;而 <code class="inline">//B //Nologo</code> 保证不显示任何脚本错误和横幅。所以协议被调用时,整个过程静默、瞬时、零窗口。</li>
+    </ol>
+
+    <p style="margin-top:16px"><strong>效果</strong></p>
+    <p>修复后,连接手柄时系统调用 <code class="inline">ms-gamebar://</code> 协议会"成功打开"这个空处理器——静默执行、立即退出。系统认为应用已正常启动,自然不再弹窗。整个过程你完全感知不到:没有弹窗、没有闪框、没有后台残留。</p>
+
+    <p style="margin-top:16px"><strong>为什么不直接删掉什么?</strong></p>
+    <p>这个问题的成因是"缺东西"而不是"多东西",所以修复方式是补上一个无感的占位处理器,而不是删除或禁用什么。也因此修复是纯增量、可逆的:运行 <code class="inline">undo.bat</code> 删除这几个注册表项和空脚本,系统就回到修复前的原始状态。</p>
   </div>
 
   <div class="card">
