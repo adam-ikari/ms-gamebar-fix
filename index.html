@@ -88,6 +88,7 @@
     <h3>原因</h3>
     <p>完整版 Windows 里,Xbox Game Bar 在注册表注册了 <code class="inline">ms-gamebar://</code> 和 <code class="inline">ms-gamebarservices://</code> 两个协议。检测到手柄连接时,系统会调用协议去拉起 Game Bar 的提示界面。</p>
     <p>LTSC 把 Xbox 组件整个砍掉了,这两个协议就注册表里根本没有对应的处理器。系统找不到任何应用来打开,只能退而弹出「需要新应用」的对话框——这就是弹窗的全部来由。</p>
+    <p class="muted" style="font-style:italic">顺带一提,这也是微软的老毛病了:组件砍得干干净净,拉起组件的钩子却留在系统里,砍一半留一半,让用户对着一个永远打不开的链接发呆。类似的事它不止干过这一次。</p>
 
     <h3>fix.bat 做了什么</h3>
     <ol class="steps">
